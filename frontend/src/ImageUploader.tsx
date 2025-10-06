@@ -161,7 +161,9 @@ const ImageUploader: React.FC = () => {
 
       const hairBoundingBox = getHairBoundingBox(result.categoryMask.width, result.categoryMask.height, maskData);
       const maskBlob = dataURLtoBlob(generatedMaskDataURL);
-      const maskImageFilePath = `mask-${imageFile.name}`;
+      const lastDotIndex = imageFile.name.lastIndexOf('.');
+      const nameWithoutExtension = lastDotIndex > 0 ? imageFile.name.substring(0, lastDotIndex) : imageFile.name;
+      const maskImageFilePath = `mask-${nameWithoutExtension}.png`;
       const { error: maskUploadError } = await supabase.storage
         .from('masks')
         .upload(maskImageFilePath, maskBlob, { upsert: true });
