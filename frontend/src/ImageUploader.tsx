@@ -1,3 +1,4 @@
+// A small change to trigger rebuild
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { ImageSegmenter, FilesetResolver } from '@mediapipe/tasks-vision';
@@ -5,7 +6,7 @@ import ColorPicker from './ColorPicker';
 import { loadImage, dataURLtoBlob, hexToRgb } from './utils/imageUtils';
 import { log, logError } from './utils/logger';
 
-const getHairBoundingBox = (width: number, height: number, maskData: Uint8Array) => {
+const getHairBoundingBox = (width: number, height: number, maskData: Uint8Array) => { // A small change to trigger rebuild
   let minX = width;
   let minY = height;
   let maxX = 0;
@@ -53,6 +54,7 @@ const ImageUploader: React.FC = () => {
   const [baseImageForMasking, setBaseImageForMasking] = useState<File | null>(null);
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('#FF0000');
+  const [presetMasks, setPresetMasks] = useState<{ name: string; url: string }[]>([]);
 
   useEffect(() => {
     const createImageSegmenter = async () => {
@@ -76,6 +78,57 @@ const ImageUploader: React.FC = () => {
       }
     };
     createImageSegmenter();
+  }, []);
+
+  useEffect(() => {
+    const fetchAllMasks = async () => {
+      try {
+        log('Fetching all masks from Supabase Storage...');
+        
+        // Fetch from both buckets in parallel
+        const [presetPromise, userMasksPromise] = await Promise.all([
+          supabase.storage.from('preset_hairstyle_masks').list(),
+          supabase.storage.from('masks').list()
+        ]);
+
+        const { data: presetFileList, error: presetError } = presetPromise;
+        const { data: userMasksFileList, error: userMasksError } = userMasksPromise;
+
+        if (presetError) throw presetError;
+        if (userMasksError) throw userMasksError;
+
+        const allFiles = [];
+        if (presetFileList) {
+          allFiles.push(...presetFileList.map(file => ({ ...file, bucket: 'preset_hairstyle_masks' })));
+        }
+        if (userMasksFileList) {
+          allFiles.push(...userMasksFileList.map(file => ({ ...file, bucket: 'masks' })));
+        }
+
+        log('Found all mask files:', allFiles);
+
+        // De-duplicate based on name
+        const uniqueFiles = allFiles.filter(
+          (file, index, self) => index === self.findIndex((f) => f.name === file.name)
+        );
+
+        const masks = uniqueFiles
+          .filter(file => file.name !== '.emptyFolderPlaceholder') // Filter out placeholder
+          .map(file => {
+            const { data: { publicUrl } } = supabase.storage
+              .from(file.bucket) // Use the correct bucket name
+              .getPublicUrl(file.name);
+            return { name: file.name, url: publicUrl };
+          });
+
+        setPresetMasks(masks);
+      } catch (err) {
+        logError('Error fetching masks:', err);
+        setError('Could not load hairstyles. Please check the console.');
+      }
+    };
+
+    fetchAllMasks();
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -358,18 +411,29 @@ const ImageUploader: React.FC = () => {
 
       <hr style={{ margin: '40px 0' }} />
 
-      <h2>Apply Existing Mask</h2>
+      <h3>Apply Existing Mask</h3>
       <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="maskUrlInput">Mask Image URL:</label>
-        <input
-          id="maskUrlInput"
-          type="text"
+        <label htmlFor="presetMaskSelect">Select a Preset Hairstyle:</label>
+        <select
+          id="presetMaskSelect"
+          data-testid="preset-mask-select"
           value={maskUrlInput}
-          onChange={(e) => setMaskUrlInput(e.target.value)}
-          placeholder="Paste mask image URL here"
+          onChange={(e) => {
+            console.log('New mask selected:', e.target.value);
+            setMaskUrlInput(e.target.value);
+          }}
           style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          disabled={processing}
-        />
+          disabled={processing || presetMasks.length === 0}
+        >
+          <option value="">
+            {presetMasks.length === 0 ? 'Loading...' : 'Select a hairstyle'}
+          </option>
+          {presetMasks.map((mask) => (
+            <option key={mask.name} value={mask.url}>
+              {mask.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="baseImageInput">Upload Base Image:</label>

@@ -1,68 +1,32 @@
-# Project Blueprint
+## Purpose and Capabilities
 
-## Overview
+This project is a React application that allows users to upload an image, segment the hair, and apply a new color or hairstyle to it. The application uses a machine learning model to perform the hair segmentation and Supabase for storing and retrieving images and masks.
 
-This project is a React web application that allows users to upload an image, automatically generate a hair mask using a MediaPipe model, and then change the hair color. The application also features the ability to apply an existing hair mask to a new image, save the final edited image, and view a gallery of all saved results. All images and metadata are stored and managed using Supabase.
+## Project Outline
 
-## Key Features
+### Styling and Design
 
-- **Image Upload & Segmentation:**
-  - Users can upload a PNG or JPG file or use a provided sample image.
-  - The application utilizes the MediaPipe Image Segmenter to automatically detect and create a precise hair mask from the uploaded image.
+*   **Component Library:** None explicitly used, but the application has a clean and simple design.
+*   **Styling:** CSS is used for styling, with a focus on a clear and intuitive layout.
+*   **Visual Effects:** The application uses a multi-layered drop shadow to create a sense of depth.
 
-- **Hair Color Customization:**
-  - A color picker allows users to select a new hair color.
-  - The selected color is blended with the original hair texture within the masked area for a realistic effect.
+### Features
 
-- **Advanced Mask Application:**
-  - Users can apply a hair mask from a URL to a completely different base image.
-  - The application intelligently segments the new base image to find the hair's bounding box, then resizes and positions the provided mask for an accurate fit.
+*   **Image Upload:** Users can upload an image from their local machine.
+*   **Hair Segmentation:** The application uses a MediaPipe hair segmentation model to create a mask of the user's hair.
+*   **Hairstyle Application:** Users can select a hairstyle from a dropdown menu and apply it to their uploaded image.
+*   **Color Picker:** Users can select a color to apply to their hair.
+*   **Image Saving:** Users can save the resulting image to their local machine.
 
-- **Image Storage & Management (Supabase):**
-  - **Supabase Storage:** The project uses three separate storage buckets:
-    - `images`: Stores the original user-uploaded images.
-    - `masks`: Stores the generated hair mask images.
-    - `results`: Stores the final, edited images with the new hair color.
-  - **Supabase Database:** The `uploads` table tracks image metadata, including:
-    - `image_name`: The name of the file.
-    - `image_url`: The public URL for the image in the `images` or `results` bucket.
-    - `mask_url`: The public URL for the corresponding mask in the `masks` bucket.
-    - `segmentation_metadata`: Labels from the MediaPipe model.
-    - `hair_bounding_box`: The coordinates of the detected hair region.
+## Current Request
 
-- **Saved Images Gallery:**
-  - The application fetches and displays a gallery of all previously saved final images from the `results` bucket.
+**Request:** The user wants to change the input mask URL from a textbox to a dropdown menu that lists mask images from the Supabase bucket 'masks'.
 
-## Project Structure
+**Plan:**
 
-- **`src/` - Source Code**
-  - **`components/`**: Contains the main React components.
-    - `App.tsx`: The main application component that orchestrates the UI.
-    - `ImageUploader.tsx`: Core component handling file uploads, segmentation, color application, and all Supabase interactions.
-    - `ColorPicker.tsx`: A simple component for selecting a hair color.
-    - `SavedImages.tsx`: Renders the gallery of images fetched from Supabase.
-  - **`utils/`**: Contains helper modules and utility functions.
-    - `imageUtils.ts`: Reusable functions for image manipulation (loading, data conversion, color conversion).
-    - `logger.ts`: Wrappers for console logging, allowing for conditional logging (e.g., only in development).
-  - **`supabaseClient.ts`**: Initializes and exports the Supabase client.
-- **`scripts/`**: Contains build-related scripts.
-  - `download-model.cjs`: A `postinstall` script that automatically downloads the required MediaPipe TFLite model.
-
-## Development Conventions
-
-To maintain a clean and modular codebase, please adhere to the following conventions:
-
-- **Logging:** All console logging, errors, and debug outputs should be handled by the functions in `src/utils/logger.ts`. This allows for centralized control over log visibility based on the environment (e.g., development vs. production).
-- **Image Utilities:** Reusable functions related to image processing, such as data conversion or color manipulation, should be placed in `src/utils/imageUtils.ts`.
-- **Component Logic:** Components should focus on state management and UI rendering, delegating complex data manipulation or business logic to utility functions whenever possible.
-
-## Recent Changes (as of 2025-10-03)
-
-- **Code Refactoring:**
-  - Modularized the codebase by creating a `src/utils` directory.
-  - Extracted image-related helpers into `src/utils/imageUtils.ts`.
-  - Centralized all console logging into `src/utils/logger.ts`.
-  - Refactored `ImageUploader.tsx` to be cleaner and use the new utility modules.
-- **Dependency Cleanup:**
-  - Corrected an import typo for `@mediapipe/tasks-vision`.
-  - Removed an incorrect and unnecessary `node.js` dependency from `package.json`.
+1.  **Analyze Existing Code:** Examine the `ImageUploader.tsx` component to understand how the mask URL is currently handled.
+2.  **Implement Dropdown:** Replace the text input with a dropdown menu.
+3.  **Fetch Masks from Supabase:** Fetch the list of masks from the 'masks' bucket in Supabase.
+4.  **Populate Dropdown:** Populate the dropdown menu with the fetched masks.
+5.  **Update State:** Update the component's state when a mask is selected from the dropdown.
+6.  **Update Blueprint:** Update the `blueprint.md` file to reflect the changes made.
