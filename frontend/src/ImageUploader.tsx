@@ -164,6 +164,7 @@ const ImageUploader: React.FC = () => {
       const lastDotIndex = imageFile.name.lastIndexOf('.');
       const nameWithoutExtension = lastDotIndex > 0 ? imageFile.name.substring(0, lastDotIndex) : imageFile.name;
       const maskImageFilePath = `mask-${nameWithoutExtension}.png`;
+      log('Attempting to upload mask to Supabase Storage:', { path: maskImageFilePath });
       const { error: maskUploadError } = await supabase.storage
         .from('masks')
         .upload(maskImageFilePath, maskBlob, { upsert: true });
@@ -189,6 +190,7 @@ const ImageUploader: React.FC = () => {
         hair_bounding_box: hairBoundingBox,
       };
 
+      log('Attempting to upsert metadata to "uploads" table:', metadataToSave);
       const { error: upsertError } = await supabase.from('uploads').upsert(metadataToSave, { onConflict: 'image_name' });
       if (upsertError) throw upsertError;
 
