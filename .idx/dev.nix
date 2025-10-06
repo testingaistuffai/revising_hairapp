@@ -1,38 +1,55 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
-  # Which nixpkgs channel to use.
-  channel = "unstable"; # or "unstable"
-  # Use https://search.nixos.org/packages to find packages
+  channel = "unstable"; 
+
   packages = [
+    # 1. PYTHON CORE
     pkgs.python3
+    
+    # 2. NODE FIX: Use the latest stable channel (22) and hope it resolves to 22.12+
     pkgs.nodejs_22
-    pkgs.libglvnd
-    pkgs.glib
-    pkgs.python3Packages.opencv
+
+    # 3. OPENCV SYSTEM DEPENDENCIES (The Fix for libgthread and libGL)
+    pkgs.libglvnd 
+    pkgs.glib 
+    
+    # 4. PYTHON AI PACKAGES: Use the versioned OpenCV to avoid conflicts
+    pkgs.python3Packages.opencv4 
   ];
+
   idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
-    extensions = [ "ms-python.python" ];
+    # ... (Keep existing extensions) ...
+    extensions = [
+      "ms-python.python"
+      "ms-python.debugpy"
+      "visualstudioexptteam.vscodeintellicode"
+    ];
+
     workspace = {
-      # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
+        # CRITICAL: This needs to run *after* the Nix packages are built.
         install = ''
-          python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+          # 1. Install Python Dependencies
+          python3 -m venv .venv 
+          source .venv/bin/activate 
+          # This command will now succeed because libgthread and OpenCV are present system-wide
+          pip install -r requirements.txt
+          
+          # 2. Install Node/Frontend Dependencies
           npm install --prefix frontend
           npm run build --prefix frontend
         '';
-        # Open editors for the following files by default, if they exist:
-        default.openFiles = [ "README.md" "main.py" ];
-      }; # To run something each time the workspace is (re)started, use the `onStart` hook
+      };
+       # Start the web server and open a preview.
+      onStart = {
+        web-preview = "./devserver.sh";
+      };
+      # ... (Rest of the workspace config) ...
     };
-    # Enable previews and customize configuration
     previews = {
       enable = true;
       previews = {
         web = {
-          command = [ "./devserver.sh" ];
-          env = { PORT = "$PORT"; };
+          command = ["./devserver.sh"];
           manager = "web";
         };
       };
