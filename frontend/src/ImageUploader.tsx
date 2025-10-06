@@ -55,6 +55,7 @@ const ImageUploader: React.FC = () => {
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('#FF0000');
   const [presetMasks, setPresetMasks] = useState<{ name: string; url: string }[]>([]);
+  const [isDropdownOpen, setDropdownOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const createImageSegmenter = async () => {
@@ -414,26 +415,35 @@ const ImageUploader: React.FC = () => {
       <h3>Apply Existing Mask</h3>
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="presetMaskSelect">Select a Preset Hairstyle:</label>
-        <select
-          id="presetMaskSelect"
-          data-testid="preset-mask-select"
-          value={maskUrlInput}
-          onChange={(e) => {
-            console.log('New mask selected:', e.target.value);
-            setMaskUrlInput(e.target.value);
-          }}
-          style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-          disabled={processing || presetMasks.length === 0}
-        >
-          <option value="">
-            {presetMasks.length === 0 ? 'Loading...' : 'Select a hairstyle'}
-          </option>
-          {presetMasks.map((mask) => (
-            <option key={mask.name} value={mask.url}>
-              {mask.name}
-            </option>
-          ))}
-        </select>
+        <div className="custom-dropdown">
+          <div className="dropdown-selected" onClick={() => setDropdownOpen(!isDropdownOpen)}>
+            {maskUrlInput ? (
+              <div className="dropdown-option">
+                <img src={maskUrlInput} alt="Selected mask" />
+                <span>{presetMasks.find((m) => m.url === maskUrlInput)?.name}</span>
+              </div>
+            ) : (
+              'Select a hairstyle'
+            )}
+          </div>
+          {isDropdownOpen && (
+            <div className="dropdown-options">
+              {presetMasks.map((mask) => (
+                <div
+                  key={mask.name}
+                  className="dropdown-option"
+                  onClick={() => {
+                    setMaskUrlInput(mask.url);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <img src={mask.url} alt={mask.name} />
+                  <span>{mask.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="baseImageInput">Upload Base Image:</label>
