@@ -30,3 +30,5 @@ This project is a React application that allows users to upload an image, segmen
 4.  **Populate Dropdown:** Populate the dropdown menu with the fetched masks.
 5.  **Update State:** Update the component's state when a mask is selected from the dropdown.
 6.  **Update Blueprint:** Update the `blueprint.md` file to reflect the changes made.
+
+**Update:** The requested feature has already been implemented in `ImageUploader.tsx`. The component already includes a dropdown for selecting preset hairstyle masks, fetches masks from Supabase, and updates the `maskUrlInput` state accordingly.

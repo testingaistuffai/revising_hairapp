@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const modelUrl = 'https://storage.googleapis.com/mediapipe-assets/hair_segmentation.tflite';
-const modelPath = path.resolve(__dirname, '../public/hair_segmenter.tflite');
+const modelPath = path.resolve(__dirname, '../frontend/public/hair_segmenter.tflite');
 
 if (!fs.existsSync(modelPath)) {
   console.log('Hair Segmenter model not found. Downloading...');
